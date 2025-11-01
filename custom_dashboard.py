@@ -1,0 +1,224 @@
+import streamlit as st
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import pandas as pd
+from data_fetcher import WorldBankData, INDICATORS, SDG_INDICATORS, COMPARISON_COUNTRIES
+
+def show_custom_dashboard():
+    """Display custom dashboard builder where users can select their own metrics."""
+    st.markdown('<div class="section-title">🎨 Custom Dashboard Builder</div>', unsafe_allow_html=True)
+    
+    st.info("Build your personalized dashboard by selecting the metrics that matter most to you.")
+    
+    st.markdown("### Select Your Metrics")
+    
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        st.markdown("#### Available Indicators")
+        
+        selected_indicators = st.multiselect(
+            "Choose indicators to display:",
+            options=list(INDICATORS.keys()),
+            default=['gdp', 'population', 'gdp_growth', 'life_expectancy'],
+            format_func=lambda x: x.replace('_', ' ').title(),
+            help="Select multiple indicators to track"
+        )
+        
+        st.markdown("#### Display Options")
+        
+        time_range = st.slider(
+            "Year Range",
+            min_value=2000,
+            max_value=2025,
+            value=(2010, 2025),
+            help="Select the time period for analysis"
+        )
+        
+        chart_type = st.radio(
+            "Chart Type",
+            options=["Line Chart", "Bar Chart", "Area Chart"],
+            help="Choose how to visualize the data"
+        )
+        
+        show_comparison = st.checkbox(
+            "Compare with other countries",
+            value=False,
+            help="Add peer African nations for comparison"
+        )
+        
+        if show_comparison:
+            selected_countries = st.multiselect(
+                "Select countries:",
+                options=list(COMPARISON_COUNTRIES.keys()),
+                default=['NGA', 'ZAF', 'KEN'],
+                format_func=lambda x: COMPARISON_COUNTRIES[x]
+            )
+        else:
+            selected_countries = ['NGA']
+    
+    with col2:
+        st.markdown("#### Your Custom Dashboard")
+        
+        if not selected_indicators:
+            st.warning("Please select at least one indicator to display")
+        else:
+            for indicator_name in selected_indicators:
+                indicator_code = INDICATORS[indicator_name]
+                
+                st.markdown(f"##### {indicator_name.replace('_', ' ').title()}")
+                
+                with st.spinner(f'Loading {indicator_name}...'):
+                    if show_comparison and len(selected_countries) > 1:
+                        df = WorldBankData.get_multi_country_indicator(
+                            selected_countries, 
+                            indicator_code, 
+                            time_range[0], 
+                            time_range[1]
+                        )
+                    else:
+                        df = WorldBankData.get_indicator_data(
+                            'NGA', 
+                            indicator_code, 
+                            time_range[0], 
+                            time_range[1]
+                        )
+                    
+                    if not df.empty:
+                        fig = create_custom_chart(df, indicator_name, chart_type, show_comparison)
+                        if fig:
+                            st.plotly_chart(fig, use_container_width=True)
+                            
+                            csv = df.to_csv(index=False).encode('utf-8')
+                            st.download_button(
+                                label=f"📥 Download {indicator_name} data",
+                                data=csv,
+                                file_name=f'{indicator_name}_{time_range[0]}_{time_range[1]}.csv',
+                                mime='text/csv',
+                                key=f'download_{indicator_name}'
+                            )
+                    else:
+                        st.info(f"No data available for {indicator_name}")
+                
+                st.markdown("---")
+    
+    st.markdown("### 📊 Summary Statistics")
+    
+    if selected_indicators:
+        summary_data = []
+        for indicator_name in selected_indicators:
+            indicator_code = INDICATORS[indicator_name]
+            val, year = WorldBankData.get_latest_value('NGA', indicator_code)
+            if val is not None:
+                df_hist = WorldBankData.get_indicator_data('NGA', indicator_code, time_range[0], time_range[1])
+                if not df_hist.empty:
+                    summary_data.append({
+                        'Indicator': indicator_name.replace('_', ' ').title(),
+                        'Latest Value': f"{val:.2f}",
+                        'Year': year,
+                        'Min': f"{df_hist['value'].min():.2f}",
+                        'Max': f"{df_hist['value'].max():.2f}",
+                        'Average': f"{df_hist['value'].mean():.2f}"
+                    })
+        
+        if summary_data:
+            summary_df = pd.DataFrame(summary_data)
+            st.dataframe(summary_df, use_container_width=True, hide_index=True)
+            
+            csv = summary_df.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="📥 Download Summary Statistics",
+                data=csv,
+                file_name=f'summary_stats_{time_range[0]}_{time_range[1]}.csv',
+                mime='text/csv',
+            )
+
+def create_custom_chart(df, indicator_name, chart_type, multi_country=False):
+    """Create custom chart based on user selection."""
+    if df.empty:
+        return None
+    
+    colors = {'NGA': '#008751', 'ZAF': '#FF6B6B', 'EGY': '#4ECDC4', 
+              'KEN': '#FFD93D', 'GHA': '#A8E6CF', 'ETH': '#FFB6B9'}
+    
+    fig = go.Figure()
+    
+    if multi_country and 'country_code' in df.columns:
+        for country_code in df['country_code'].unique():
+            country_data = df[df['country_code'] == country_code]
+            color = colors.get(country_code, '#888888')
+            
+            if chart_type == "Line Chart":
+                fig.add_trace(go.Scatter(
+                    x=country_data['year'],
+                    y=country_data['value'],
+                    mode='lines+markers',
+                    name=COMPARISON_COUNTRIES.get(country_code, country_code),
+                    line=dict(color=color, width=2),
+                    marker=dict(size=6)
+                ))
+            elif chart_type == "Bar Chart":
+                fig.add_trace(go.Bar(
+                    x=country_data['year'],
+                    y=country_data['value'],
+                    name=COMPARISON_COUNTRIES.get(country_code, country_code),
+                    marker=dict(color=color)
+                ))
+            else:  # Area Chart
+                fig.add_trace(go.Scatter(
+                    x=country_data['year'],
+                    y=country_data['value'],
+                    mode='lines',
+                    name=COMPARISON_COUNTRIES.get(country_code, country_code),
+                    fill='tonexty' if country_code != df['country_code'].unique()[0] else 'tozeroy',
+                    line=dict(color=color)
+                ))
+    else:
+        if chart_type == "Line Chart":
+            fig.add_trace(go.Scatter(
+                x=df['year'],
+                y=df['value'],
+                mode='lines+markers',
+                name=indicator_name.replace('_', ' ').title(),
+                line=dict(color='#008751', width=3),
+                marker=dict(size=8)
+            ))
+        elif chart_type == "Bar Chart":
+            fig.add_trace(go.Bar(
+                x=df['year'],
+                y=df['value'],
+                name=indicator_name.replace('_', ' ').title(),
+                marker=dict(color='#008751')
+            ))
+        else:  # Area Chart
+            fig.add_trace(go.Scatter(
+                x=df['year'],
+                y=df['value'],
+                mode='lines',
+                name=indicator_name.replace('_', ' ').title(),
+                fill='tozeroy',
+                line=dict(color='#008751')
+            ))
+    
+    fig.update_layout(
+        title=indicator_name.replace('_', ' ').title(),
+        xaxis_title="Year",
+        yaxis_title="Value",
+        hovermode='x unified',
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(size=12),
+        height=400,
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.3,
+            xanchor="center",
+            x=0.5
+        ) if multi_country else dict()
+    )
+    
+    fig.update_xaxes(showgrid=True, gridcolor='#f0f0f0')
+    fig.update_yaxes(showgrid=True, gridcolor='#f0f0f0')
+    
+    return fig

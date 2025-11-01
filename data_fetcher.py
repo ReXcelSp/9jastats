@@ -40,19 +40,23 @@ class WorldBankData:
             
             records = []
             for item in data[1]:
-                if item['value'] is not None:
-                    records.append({
-                        'year': int(item['date']),
-                        'value': float(item['value']),
-                        'country': item['country']['value'],
-                        'country_code': item['countryiso3code']
-                    })
+                try:
+                    if item['value'] is not None and item.get('date') and item.get('country') and item.get('countryiso3code'):
+                        records.append({
+                            'year': int(item['date']),
+                            'value': float(item['value']),
+                            'country': item['country']['value'],
+                            'country_code': item['countryiso3code']
+                        })
+                except (KeyError, ValueError, TypeError) as item_error:
+                    continue
             
-            df = pd.DataFrame(records)
-            return df.sort_values('year')
+            if records:
+                df = pd.DataFrame(records)
+                return df.sort_values('year')
+            return pd.DataFrame()
         
         except Exception as e:
-            st.error(f"Error fetching data: {str(e)}")
             return pd.DataFrame()
     
     @staticmethod
@@ -134,6 +138,82 @@ INDICATORS = {
     'co2_emissions': 'EN.ATM.CO2E.PC',  # CO2 emissions (metric tons per capita)
     'forest_area': 'AG.LND.FRST.ZS',  # Forest area (% of land area)
     'water_access': 'SH.H2O.SMDW.ZS',  # People using safely managed drinking water services
+}
+
+# SDG (Sustainable Development Goals) Indicators
+SDG_INDICATORS = {
+    'sdg1_poverty': {
+        'code': 'SI.POV.DDAY',
+        'name': 'SDG 1: No Poverty',
+        'description': 'Poverty headcount ratio at $2.15/day (% of population)',
+        'target': 'Lower is better'
+    },
+    'sdg2_hunger': {
+        'code': 'SN.ITK.DEFC.ZS',
+        'name': 'SDG 2: Zero Hunger',
+        'description': 'Prevalence of undernourishment (% of population)',
+        'target': 'Lower is better'
+    },
+    'sdg3_health_maternal': {
+        'code': 'SH.STA.MMRT',
+        'name': 'SDG 3: Good Health',
+        'description': 'Maternal mortality ratio (per 100,000 live births)',
+        'target': 'Lower is better'
+    },
+    'sdg3_health_child': {
+        'code': 'SH.DYN.MORT',
+        'name': 'SDG 3: Good Health',
+        'description': 'Under-5 mortality rate (per 1,000 live births)',
+        'target': 'Lower is better'
+    },
+    'sdg4_education': {
+        'code': 'SE.PRM.CMPT.ZS',
+        'name': 'SDG 4: Quality Education',
+        'description': 'Primary completion rate (% of relevant age group)',
+        'target': 'Higher is better'
+    },
+    'sdg5_gender': {
+        'code': 'SL.TLF.CACT.FE.ZS',
+        'name': 'SDG 5: Gender Equality',
+        'description': 'Female labor force participation rate (%)',
+        'target': 'Higher is better'
+    },
+    'sdg6_water': {
+        'code': 'SH.H2O.BASW.ZS',
+        'name': 'SDG 6: Clean Water',
+        'description': 'Access to basic drinking water (% of population)',
+        'target': 'Higher is better'
+    },
+    'sdg7_energy': {
+        'code': 'EG.ELC.ACCS.ZS',
+        'name': 'SDG 7: Affordable Energy',
+        'description': 'Access to electricity (% of population)',
+        'target': 'Higher is better'
+    },
+    'sdg8_growth': {
+        'code': 'NY.GDP.MKTP.KD.ZG',
+        'name': 'SDG 8: Economic Growth',
+        'description': 'GDP growth (annual %)',
+        'target': 'Higher is better'
+    },
+    'sdg8_unemployment': {
+        'code': 'SL.UEM.TOTL.ZS',
+        'name': 'SDG 8: Decent Work',
+        'description': 'Unemployment rate (% of total labor force)',
+        'target': 'Lower is better'
+    },
+    'sdg10_inequality': {
+        'code': 'SI.POV.GINI',
+        'name': 'SDG 10: Reduced Inequalities',
+        'description': 'Gini index (income inequality)',
+        'target': 'Lower is better'
+    },
+    'sdg13_climate': {
+        'code': 'EN.ATM.CO2E.PC',
+        'name': 'SDG 13: Climate Action',
+        'description': 'CO2 emissions (metric tons per capita)',
+        'target': 'Lower is better'
+    }
 }
 
 # Comparison Countries

@@ -4,7 +4,9 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 import pandas as pd
 import numpy as np
-from data_fetcher import WorldBankData, INDICATORS, COMPARISON_COUNTRIES
+from data_fetcher import WorldBankData, INDICATORS, COMPARISON_COUNTRIES, SDG_INDICATORS
+from custom_dashboard import show_custom_dashboard
+from predictions import show_predictive_analytics
 
 st.set_page_config(
     page_title="9jaStats - Nigeria Development Dashboard",
@@ -71,6 +73,12 @@ def format_number(num, prefix="", suffix="", decimals=2):
         return f"{prefix}{num/1e3:.{decimals}f}K{suffix}"
     else:
         return f"{prefix}{num:.{decimals}f}{suffix}"
+
+def export_to_csv(df, filename):
+    """Convert dataframe to CSV for download."""
+    if df.empty:
+        return None
+    return df.to_csv(index=False).encode('utf-8')
 
 def create_trend_chart(df, title, yaxis_title, color='#008751'):
     """Create a line chart for trend data."""
@@ -548,6 +556,136 @@ def show_global_comparison():
             else:
                 st.info("Electricity comparison not available")
 
+def show_sdg_progress():
+    """Display SDG Progress tracker."""
+    st.markdown('<div class="section-title">🎯 Sustainable Development Goals (SDG) Progress</div>', unsafe_allow_html=True)
+    
+    st.info("Tracking Nigeria's progress on UN Sustainable Development Goals using World Bank indicators")
+    
+    st.markdown("### SDG Performance Dashboard")
+    
+    sdg_data = []
+    for sdg_key, sdg_info in SDG_INDICATORS.items():
+        val, year = WorldBankData.get_latest_value('NGA', sdg_info['code'])
+        if val is not None:
+            sdg_data.append({
+                'Goal': sdg_info['name'],
+                'Indicator': sdg_info['description'],
+                'Latest Value': f"{val:.2f}",
+                'Year': year,
+                'Target': sdg_info['target']
+            })
+    
+    if sdg_data:
+        sdg_df = pd.DataFrame(sdg_data)
+        st.dataframe(sdg_df, use_container_width=True, hide_index=True)
+    else:
+        st.warning("SDG data not available")
+    
+    st.markdown("### SDG Trends Over Time")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### SDG 1: No Poverty")
+        with st.spinner('Loading poverty data...'):
+            poverty_df = WorldBankData.get_indicator_data('NGA', SDG_INDICATORS['sdg1_poverty']['code'], 2000, 2025)
+            if not poverty_df.empty:
+                fig = create_trend_chart(poverty_df, "Poverty Rate Trend", "% of Population at $2.15/day", '#FF6B6B')
+                if fig:
+                    st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("Poverty data not available")
+    
+    with col2:
+        st.markdown("#### SDG 4: Quality Education")
+        with st.spinner('Loading education data...'):
+            edu_df = WorldBankData.get_indicator_data('NGA', SDG_INDICATORS['sdg4_education']['code'], 2000, 2025)
+            if not edu_df.empty:
+                fig = create_trend_chart(edu_df, "Primary Education Completion", "% of Relevant Age Group", '#008751')
+                if fig:
+                    st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("Education data not available")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### SDG 3: Good Health - Maternal Mortality")
+        with st.spinner('Loading maternal mortality data...'):
+            maternal_df = WorldBankData.get_indicator_data('NGA', SDG_INDICATORS['sdg3_health_maternal']['code'], 2000, 2025)
+            if not maternal_df.empty:
+                fig = create_trend_chart(maternal_df, "Maternal Mortality Ratio", "Per 100,000 Live Births", '#FF6B6B')
+                if fig:
+                    st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("Maternal mortality data not available")
+    
+    with col2:
+        st.markdown("#### SDG 3: Good Health - Child Mortality")
+        with st.spinner('Loading child mortality data...'):
+            child_df = WorldBankData.get_indicator_data('NGA', SDG_INDICATORS['sdg3_health_child']['code'], 2000, 2025)
+            if not child_df.empty:
+                fig = create_trend_chart(child_df, "Under-5 Mortality Rate", "Per 1,000 Live Births", '#FFD93D')
+                if fig:
+                    st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("Child mortality data not available")
+    
+    st.markdown("### SDG Gender & Energy Access")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### SDG 5: Gender Equality")
+        with st.spinner('Loading gender equality data...'):
+            gender_df = WorldBankData.get_indicator_data('NGA', SDG_INDICATORS['sdg5_gender']['code'], 2000, 2025)
+            if not gender_df.empty:
+                fig = create_trend_chart(gender_df, "Female Labor Force Participation", "% of Female Population", '#4ECDC4')
+                if fig:
+                    st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("Gender equality data not available")
+    
+    with col2:
+        st.markdown("#### SDG 7: Affordable Energy")
+        with st.spinner('Loading energy access data...'):
+            energy_df = WorldBankData.get_indicator_data('NGA', SDG_INDICATORS['sdg7_energy']['code'], 2000, 2025)
+            if not energy_df.empty:
+                fig = create_trend_chart(energy_df, "Electricity Access", "% of Population", '#008751')
+                if fig:
+                    st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("Energy access data not available")
+    
+    st.markdown("### SDG Regional Comparison")
+    
+    countries = list(COMPARISON_COUNTRIES.keys())
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### Poverty Rates Comparison")
+        with st.spinner('Loading poverty comparison...'):
+            poverty_comp_df = WorldBankData.get_multi_country_indicator(countries, SDG_INDICATORS['sdg1_poverty']['code'], 2010, 2025)
+            if not poverty_comp_df.empty:
+                fig = create_comparison_chart(poverty_comp_df, "Poverty Rate - African Nations", "% of Population")
+                if fig:
+                    st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("Poverty comparison not available")
+    
+    with col2:
+        st.markdown("#### Education Completion Comparison")
+        with st.spinner('Loading education comparison...'):
+            edu_comp_df = WorldBankData.get_multi_country_indicator(countries, SDG_INDICATORS['sdg4_education']['code'], 2010, 2025)
+            if not edu_comp_df.empty:
+                fig = create_comparison_chart(edu_comp_df, "Primary Completion Rate", "% of Age Group")
+                if fig:
+                    st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("Education comparison not available")
+
 def main():
     """Main application function."""
     
@@ -557,7 +695,8 @@ def main():
     page = st.sidebar.radio(
         "Select Section:",
         ["🏠 Overview", "💰 Economic Development", "👨‍👩‍👧‍👦 Social Development", 
-         "🏗️ Infrastructure & Tech", "🌍 Global Comparison"],
+         "🏗️ Infrastructure & Tech", "🌍 Global Comparison", "🎯 SDG Progress", 
+         "🎨 Custom Dashboard", "🔮 Predictive Analytics"],
         label_visibility="collapsed"
     )
     
@@ -567,6 +706,32 @@ def main():
         "9jaStats provides a comprehensive 360-degree view of Nigeria's national development "
         "and global competitiveness. Data is sourced from the World Bank Development Indicators."
     )
+    
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### 📥 Export Data")
+    
+    with st.sidebar.expander("Download All Indicators"):
+        if st.button("📊 Export All Nigeria Data"):
+            all_data = []
+            for indicator_name, indicator_code in INDICATORS.items():
+                df = WorldBankData.get_indicator_data('NGA', indicator_code, 2000, 2025)
+                if not df.empty:
+                    df['indicator'] = indicator_name
+                    all_data.append(df)
+            
+            if all_data:
+                combined_df = pd.concat(all_data, ignore_index=True)
+                csv = export_to_csv(combined_df, 'nigeria_all_data.csv')
+                if csv:
+                    st.sidebar.download_button(
+                        label="⬇️ Download CSV",
+                        data=csv,
+                        file_name='nigeria_all_indicators.csv',
+                        mime='text/csv',
+                    )
+                    st.sidebar.success("Data ready for download!")
+            else:
+                st.sidebar.error("No data available")
     
     st.sidebar.markdown("---")
     st.sidebar.markdown("**Data Source:** World Bank Open Data")
@@ -582,6 +747,12 @@ def main():
         show_infrastructure()
     elif page == "🌍 Global Comparison":
         show_global_comparison()
+    elif page == "🎯 SDG Progress":
+        show_sdg_progress()
+    elif page == "🎨 Custom Dashboard":
+        show_custom_dashboard()
+    elif page == "🔮 Predictive Analytics":
+        show_predictive_analytics()
 
 if __name__ == "__main__":
     main()
