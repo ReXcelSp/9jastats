@@ -87,7 +87,7 @@ def show_custom_dashboard():
                     if not df.empty:
                         fig = create_custom_chart(df, indicator_name, chart_type, show_comparison)
                         if fig:
-                            st.plotly_chart(fig, use_container_width=True)
+                            st.plotly_chart(fig, width='stretch')
                             
                             csv = df.to_csv(index=False).encode('utf-8')
                             st.download_button(
@@ -123,7 +123,7 @@ def show_custom_dashboard():
         
         if summary_data:
             summary_df = pd.DataFrame(summary_data)
-            st.dataframe(summary_df, use_container_width=True, hide_index=True)
+            st.dataframe(summary_df, width='stretch', hide_index=True)
             
             csv = summary_df.to_csv(index=False).encode('utf-8')
             st.download_button(

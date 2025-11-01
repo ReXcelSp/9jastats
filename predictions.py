@@ -65,7 +65,7 @@ def show_predictive_analytics():
                         show_confidence
                     )
                     if fig:
-                        st.plotly_chart(fig, use_container_width=True)
+                        st.plotly_chart(fig, width='stretch')
                         
                         st.markdown("#### Prediction Summary")
                         
@@ -150,7 +150,7 @@ def show_predictive_analytics():
         
         if forecast_data:
             forecast_df = pd.DataFrame(forecast_data)
-            st.dataframe(forecast_df, use_container_width=True, hide_index=True)
+            st.dataframe(forecast_df, width='stretch', hide_index=True)
 
 def generate_predictions(df, forecast_years=5):
     """Generate predictions using simple linear regression."""

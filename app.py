@@ -253,7 +253,7 @@ def show_overview():
             if not gdp_df.empty:
                 fig = create_trend_chart(gdp_df, "Nigeria GDP Trend", "GDP (Current US$)", '#008751')
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("GDP data not available")
     
@@ -263,7 +263,7 @@ def show_overview():
             if not growth_df.empty:
                 fig = create_trend_chart(growth_df, "GDP Growth Rate (%)", "Annual % Growth", '#FF6B6B')
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("GDP growth data not available")
     
@@ -305,7 +305,7 @@ def show_economic_development():
         if not gdp_pc_df.empty:
             fig = create_trend_chart(gdp_pc_df, "GDP Per Capita", "Current US$", '#008751')
             if fig:
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
         else:
             st.info("GDP per capita data not available")
     
@@ -332,7 +332,7 @@ def show_economic_development():
                     color_discrete_sequence=['#008751', '#FFD93D', '#4ECDC4']
                 )
                 fig.update_layout(height=400)
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Sectoral data not available")
     
@@ -343,7 +343,7 @@ def show_economic_development():
             if not inflation_df.empty:
                 fig = create_trend_chart(inflation_df, "Inflation Rate", "Annual %", '#FF6B6B')
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Inflation data not available")
     
@@ -353,7 +353,7 @@ def show_economic_development():
         if not fdi_df.empty:
             fig = create_trend_chart(fdi_df, "FDI Net Inflows", "Current US$", '#4ECDC4')
             if fig:
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
         else:
             st.info("FDI data not available")
 
@@ -370,7 +370,7 @@ def show_social_development():
             if not life_exp_df.empty:
                 fig = create_trend_chart(life_exp_df, "Life Expectancy at Birth", "Years", '#008751')
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Life expectancy data not available")
     
@@ -381,7 +381,7 @@ def show_social_development():
             if not infant_mort_df.empty:
                 fig = create_trend_chart(infant_mort_df, "Infant Mortality Rate", "Per 1,000 live births", '#FF6B6B')
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Infant mortality data not available")
     
@@ -394,7 +394,7 @@ def show_social_development():
             if not primary_df.empty:
                 fig = create_trend_chart(primary_df, "Primary School Enrollment", "% Net", '#4ECDC4')
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Primary enrollment data not available")
     
@@ -404,7 +404,7 @@ def show_social_development():
             if not secondary_df.empty:
                 fig = create_trend_chart(secondary_df, "Secondary School Enrollment", "% Net", '#FFD93D')
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Secondary enrollment data not available")
     
@@ -448,7 +448,7 @@ def show_infrastructure():
             if not elec_df.empty:
                 fig = create_trend_chart(elec_df, "Access to Electricity", "% of Population", '#008751')
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Electricity access data not available")
     
@@ -459,7 +459,7 @@ def show_infrastructure():
             if not internet_df.empty:
                 fig = create_trend_chart(internet_df, "Internet Users", "% of Population", '#4ECDC4')
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Internet users data not available")
     
@@ -472,7 +472,7 @@ def show_infrastructure():
             if not mobile_df.empty:
                 fig = create_trend_chart(mobile_df, "Mobile Cellular Subscriptions", "Per 100 People", '#FFD93D')
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Mobile subscriptions data not available")
     
@@ -482,7 +482,7 @@ def show_infrastructure():
             if not renewable_df.empty:
                 fig = create_trend_chart(renewable_df, "Renewable Energy Consumption", "% of Total", '#A8E6CF')
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Renewable energy data not available")
 
@@ -500,7 +500,7 @@ def show_global_comparison():
         if not gdp_comp_df.empty:
             fig = create_comparison_chart(gdp_comp_df, "GDP Comparison - African Nations", "GDP (Current US$)")
             if fig:
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
         else:
             st.info("GDP comparison data not available")
     
@@ -513,7 +513,7 @@ def show_global_comparison():
             if not gdp_pc_comp_df.empty:
                 fig = create_comparison_chart(gdp_pc_comp_df, "GDP Per Capita", "Current US$")
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("GDP per capita comparison not available")
     
@@ -524,7 +524,7 @@ def show_global_comparison():
             if not life_comp_df.empty:
                 fig = create_comparison_chart(life_comp_df, "Life Expectancy", "Years")
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Life expectancy comparison not available")
     
@@ -534,7 +534,7 @@ def show_global_comparison():
         if not growth_comp_df.empty:
             fig = create_multi_line_chart(growth_comp_df, "GDP Growth Rate - Regional Comparison", "Annual % Growth")
             if fig:
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
         else:
             st.info("GDP growth comparison not available")
     
@@ -547,7 +547,7 @@ def show_global_comparison():
             if not internet_comp_df.empty:
                 fig = create_comparison_chart(internet_comp_df, "Internet Users", "% of Population")
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Internet comparison not available")
     
@@ -558,7 +558,7 @@ def show_global_comparison():
             if not elec_comp_df.empty:
                 fig = create_comparison_chart(elec_comp_df, "Electricity Access", "% of Population")
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Electricity comparison not available")
 
@@ -584,7 +584,7 @@ def show_sdg_progress():
     
     if sdg_data:
         sdg_df = pd.DataFrame(sdg_data)
-        st.dataframe(sdg_df, use_container_width=True, hide_index=True)
+        st.dataframe(sdg_df, width='stretch', hide_index=True)
     else:
         st.warning("SDG data not available")
     
@@ -599,7 +599,7 @@ def show_sdg_progress():
             if not poverty_df.empty:
                 fig = create_trend_chart(poverty_df, "Poverty Rate Trend", "% of Population at $2.15/day", '#FF6B6B')
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Poverty data not available")
     
@@ -610,7 +610,7 @@ def show_sdg_progress():
             if not edu_df.empty:
                 fig = create_trend_chart(edu_df, "Primary Education Completion", "% of Relevant Age Group", '#008751')
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Education data not available")
     
@@ -623,7 +623,7 @@ def show_sdg_progress():
             if not maternal_df.empty:
                 fig = create_trend_chart(maternal_df, "Maternal Mortality Ratio", "Per 100,000 Live Births", '#FF6B6B')
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Maternal mortality data not available")
     
@@ -634,7 +634,7 @@ def show_sdg_progress():
             if not child_df.empty:
                 fig = create_trend_chart(child_df, "Under-5 Mortality Rate", "Per 1,000 Live Births", '#FFD93D')
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Child mortality data not available")
     
@@ -649,7 +649,7 @@ def show_sdg_progress():
             if not gender_df.empty:
                 fig = create_trend_chart(gender_df, "Female Labor Force Participation", "% of Female Population", '#4ECDC4')
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Gender equality data not available")
     
@@ -660,7 +660,7 @@ def show_sdg_progress():
             if not energy_df.empty:
                 fig = create_trend_chart(energy_df, "Electricity Access", "% of Population", '#008751')
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Energy access data not available")
     
@@ -677,7 +677,7 @@ def show_sdg_progress():
             if not poverty_comp_df.empty:
                 fig = create_comparison_chart(poverty_comp_df, "Poverty Rate - African Nations", "% of Population")
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Poverty comparison not available")
     
@@ -688,7 +688,7 @@ def show_sdg_progress():
             if not edu_comp_df.empty:
                 fig = create_comparison_chart(edu_comp_df, "Primary Completion Rate", "% of Age Group")
                 if fig:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Education comparison not available")
 
