@@ -25,9 +25,9 @@ def get_theme_colors():
         return {
             'bg': '#1e1e1e',
             'secondary_bg': '#2d2d2d',
-            'text': '#e0e0e0',
-            'subtext': '#b0b0b0',
-            'primary': '#00b06f',
+            'text': '#f5f5f5',
+            'subtext': '#d0d0d0',
+            'primary': '#00d68f',
             'grid': '#3d3d3d',
             'plot_bg': 'rgba(45,45,45,0.5)',
             'paper_bg': 'rgba(30,30,30,0)'
