@@ -44,125 +44,140 @@ def get_theme_colors():
             'paper_bg': 'rgba(0,0,0,0)'
         }
 
-theme = get_theme_colors()
-
-st.markdown(f"""
-    <style>
-        .stApp {{
-            background-color: {theme['bg']};
-            color: {theme['text']};
-        }}
-        .main-header {{
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: {theme['primary']};
-            text-align: center;
-            margin-bottom: 0.5rem;
-        }}
-        .sub-header {{
-            font-size: 1.2rem;
-            color: {theme['subtext']};
-            text-align: center;
-            margin-bottom: 2rem;
-        }}
-        .metric-card {{
-            background: linear-gradient(135deg, {theme['primary']} 0%, #00b06f 100%);
-            padding: 1.5rem;
-            border-radius: 10px;
-            color: white;
-            text-align: center;
-            margin-bottom: 1rem;
-        }}
-        .section-title {{
-            color: {theme['primary']};
-            font-size: 1.8rem;
-            font-weight: 600;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            border-bottom: 3px solid {theme['primary']};
-            padding-bottom: 0.5rem;
-        }}
-        /* Mobile-optimized touch targets */
-        .stButton>button {{
-            min-height: 44px;
-            min-width: 44px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }}
-        .stButton>button:active {{
-            transform: scale(0.98);
-        }}
-        [data-testid="stSidebar"] {{
-            background-color: {theme['secondary_bg']};
-        }}
-        /* Better mobile sidebar */
-        @media (max-width: 768px) {{
-            [data-testid="stSidebar"] {{
-                min-width: 280px;
+def inject_custom_css():
+    """Inject theme-aware custom CSS."""
+    theme = get_theme_colors()
+    st.markdown(f"""
+        <style>
+            .stApp {{
+                background-color: {theme['bg']};
+                color: {theme['text']};
             }}
-            [data-testid="stSidebarNav"] {{
-                padding-top: 1rem;
-            }}
-        }}
-        /* Mobile responsive adjustments */
-        @media (max-width: 768px) {{
             .main-header {{
-                font-size: 1.8rem;
-                padding: 0 1rem;
+                font-size: 2.5rem;
+                font-weight: 700;
+                color: {theme['primary']};
+                text-align: center;
+                margin-bottom: 0.5rem;
             }}
             .sub-header {{
-                font-size: 1rem;
-                padding: 0 1rem;
-            }}
-            .section-title {{
-                font-size: 1.5rem;
-            }}
-            .stButton>button {{
-                min-height: 48px;
-                width: 100%;
-                font-size: 16px;
+                font-size: 1.2rem;
+                color: {theme['subtext']};
+                text-align: center;
+                margin-bottom: 2rem;
             }}
             .metric-card {{
-                padding: 1rem;
-            }}
-            /* Stack columns on mobile */
-            [data-testid="column"] {{
-                width: 100% !important;
-                flex: 1 1 100% !important;
-                min-width: 100% !important;
-            }}
-            /* Better chart spacing on mobile */
-            .js-plotly-plot {{
+                background: linear-gradient(135deg, {theme['primary']} 0%, #00b06f 100%);
+                padding: 1.5rem;
+                border-radius: 10px;
+                color: white;
+                text-align: center;
                 margin-bottom: 1rem;
             }}
-            /* Larger touch targets for radio buttons */
-            [data-testid="stRadio"] label {{
-                min-height: 48px;
-                padding: 12px 16px;
-                display: flex;
-                align-items: center;
+            .section-title {{
+                color: {theme['primary']};
+                font-size: 1.8rem;
+                font-weight: 600;
+                margin-top: 2rem;
+                margin-bottom: 1rem;
+                border-bottom: 3px solid {theme['primary']};
+                padding-bottom: 0.5rem;
             }}
-        }}
-        /* Smooth transitions for theme switching */
-        .stApp, .stButton>button, [data-testid="stSidebar"] {{
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }}
-        /* Enhanced Plotly chart controls for mobile */
-        .modebar {{
-            opacity: 1 !important;
-        }}
-        @media (max-width: 768px) {{
+            /* Mobile-optimized touch targets */
+            .stButton>button {{
+                min-height: 44px;
+                min-width: 44px;
+                border-radius: 8px;
+                transition: all 0.3s ease;
+            }}
+            .stButton>button:active {{
+                transform: scale(0.98);
+            }}
+            [data-testid="stSidebar"] {{
+                background-color: {theme['secondary_bg']};
+            }}
+            /* Better mobile sidebar */
+            @media (max-width: 768px) {{
+                [data-testid="stSidebar"] {{
+                    min-width: 280px;
+                }}
+                [data-testid="stSidebarNav"] {{
+                    padding-top: 1rem;
+                }}
+            }}
+            /* Mobile responsive adjustments */
+            @media (max-width: 768px) {{
+                .main-header {{
+                    font-size: 1.8rem;
+                    padding: 0 1rem;
+                }}
+                .sub-header {{
+                    font-size: 1rem;
+                    padding: 0 1rem;
+                }}
+                .section-title {{
+                    font-size: 1.5rem;
+                }}
+                .stButton>button {{
+                    min-height: 48px;
+                    width: 100%;
+                    font-size: 16px;
+                }}
+                .metric-card {{
+                    padding: 1rem;
+                }}
+                /* Stack columns on mobile */
+                [data-testid="column"] {{
+                    width: 100% !important;
+                    flex: 1 1 100% !important;
+                    min-width: 100% !important;
+                }}
+                /* Better chart spacing on mobile */
+                .js-plotly-plot {{
+                    margin-bottom: 1rem;
+                }}
+                /* Larger touch targets for radio buttons */
+                div[role="radiogroup"] > div {{
+                    min-height: 48px !important;
+                    padding: 6px 8px !important;
+                    display: flex !important;
+                    align-items: center !important;
+                }}
+                div[role="radiogroup"] label {{
+                    min-height: 48px !important;
+                    padding: 6px 0px !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    width: 100% !important;
+                }}
+                div[role="radiogroup"] p {{
+                    margin: 0 !important;
+                    line-height: 1.5 !important;
+                }}
+                div[role="radiogroup"] {{
+                    gap: 6px !important;
+                }}
+            }}
+            /* Smooth transitions for theme switching */
+            .stApp, .stButton>button, [data-testid="stSidebar"] {{
+                transition: background-color 0.3s ease, color 0.3s ease;
+            }}
+            /* Enhanced Plotly chart controls for mobile */
             .modebar {{
-                top: 0px !important;
-                right: 0px !important;
+                opacity: 1 !important;
             }}
-            .modebar-btn {{
-                width: 32px !important;
-                height: 32px !important;
+            @media (max-width: 768px) {{
+                .modebar {{
+                    top: 0px !important;
+                    right: 0px !important;
+                }}
+                .modebar-btn {{
+                    width: 32px !important;
+                    height: 32px !important;
+                }}
             }}
-        }}
-    </style>
-""", unsafe_allow_html=True)
+        </style>
+    """, unsafe_allow_html=True)
 
 def format_number(num, prefix="", suffix="", decimals=2):
     """Format large numbers for display."""
@@ -823,6 +838,9 @@ def show_sdg_progress():
 
 def main():
     """Main application function."""
+    
+    # Inject theme-aware CSS on every rerun
+    inject_custom_css()
     
     # Dark mode toggle
     col1, col2 = st.sidebar.columns([3, 1])
