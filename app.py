@@ -92,14 +92,15 @@ def create_trend_chart(df, title, yaxis_title, color='#008751'):
         mode='lines+markers',
         name=title,
         line=dict(color=color, width=3),
-        marker=dict(size=8, color=color)
+        marker=dict(size=8, color=color),
+        hovertemplate='<b>Year:</b> %{x}<br><b>Value:</b> %{y:.2f}<extra></extra>'
     ))
     
     fig.update_layout(
         title=title,
         xaxis_title="Year",
         yaxis_title=yaxis_title,
-        hovermode='x unified',
+        hovermode='closest',
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)',
         font=dict(size=12),
@@ -132,12 +133,15 @@ def create_comparison_chart(df, title, yaxis_title, latest_year=True):
         marker=dict(color=colors),
         text=df['value'].round(2),
         textposition='auto',
+        hovertemplate='<b>%{y}</b><br>Value: %{x:.2f}<br>Year: %{customdata[0]}<extra></extra>',
+        customdata=df[['year']].values
     ))
     
     fig.update_layout(
         title=title,
         xaxis_title=yaxis_title,
         yaxis_title="",
+        hovermode='closest',
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)',
         font=dict(size=12),
@@ -162,13 +166,15 @@ def create_multi_line_chart(df, title, yaxis_title):
     
     for country_code in df['country_code'].unique():
         country_data = df[df['country_code'] == country_code]
+        country_name = COMPARISON_COUNTRIES.get(country_code, country_code)
         fig.add_trace(go.Scatter(
             x=country_data['year'],
             y=country_data['value'],
             mode='lines+markers',
-            name=COMPARISON_COUNTRIES.get(country_code, country_code),
+            name=country_name,
             line=dict(color=colors.get(country_code, '#888888'), width=2),
-            marker=dict(size=6)
+            marker=dict(size=6),
+            hovertemplate=f'<b>{country_name}</b><br>Year: %{{x}}<br>Value: %{{y:.2f}}<extra></extra>'
         ))
     
     fig.update_layout(

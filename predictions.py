@@ -209,7 +209,8 @@ def create_prediction_chart(historical_df, predictions_df, indicator_name, show_
         mode='lines+markers',
         name='Historical Data',
         line=dict(color='#008751', width=3),
-        marker=dict(size=8)
+        marker=dict(size=8),
+        hovertemplate='<b>Historical</b><br>Year: %{x}<br>Value: %{y:.2f}<extra></extra>'
     ))
     
     fig.add_trace(go.Scatter(
@@ -218,18 +219,25 @@ def create_prediction_chart(historical_df, predictions_df, indicator_name, show_
         mode='lines+markers',
         name='Forecast',
         line=dict(color='#FF6B6B', width=3, dash='dash'),
-        marker=dict(size=8, symbol='diamond')
+        marker=dict(size=8, symbol='diamond'),
+        hovertemplate='<b>Forecast</b><br>Year: %{x}<br>Predicted: %{y:.2f}<extra></extra>'
     ))
     
     if show_confidence:
+        upper_years = predictions_df['year'].tolist()
+        lower_years = predictions_df['year'].tolist()[::-1]
+        upper_bounds = predictions_df['upper_bound'].tolist()
+        lower_bounds = predictions_df['lower_bound'].tolist()[::-1]
+        
         fig.add_trace(go.Scatter(
-            x=pd.concat([predictions_df['year'], predictions_df['year'][::-1]]),
-            y=pd.concat([predictions_df['upper_bound'], predictions_df['lower_bound'][::-1]]),
+            x=upper_years + lower_years,
+            y=upper_bounds + lower_bounds,
             fill='toself',
             fillcolor='rgba(255, 107, 107, 0.2)',
             line=dict(color='rgba(255,255,255,0)'),
             showlegend=True,
-            name='95% Confidence Interval'
+            name='95% Confidence Interval',
+            hovertemplate='<b>Confidence Interval</b><br>Year: %{x}<br>Range: %{y:.2f}<extra></extra>'
         ))
     
     fig.update_layout(

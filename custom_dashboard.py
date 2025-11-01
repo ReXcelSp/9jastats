@@ -147,57 +147,65 @@ def create_custom_chart(df, indicator_name, chart_type, multi_country=False):
         for country_code in df['country_code'].unique():
             country_data = df[df['country_code'] == country_code]
             color = colors.get(country_code, '#888888')
+            country_name = COMPARISON_COUNTRIES.get(country_code, country_code)
             
             if chart_type == "Line Chart":
                 fig.add_trace(go.Scatter(
                     x=country_data['year'],
                     y=country_data['value'],
                     mode='lines+markers',
-                    name=COMPARISON_COUNTRIES.get(country_code, country_code),
+                    name=country_name,
                     line=dict(color=color, width=2),
-                    marker=dict(size=6)
+                    marker=dict(size=6),
+                    hovertemplate=f'<b>{country_name}</b><br>Year: %{{x}}<br>Value: %{{y:.2f}}<extra></extra>'
                 ))
             elif chart_type == "Bar Chart":
                 fig.add_trace(go.Bar(
                     x=country_data['year'],
                     y=country_data['value'],
-                    name=COMPARISON_COUNTRIES.get(country_code, country_code),
-                    marker=dict(color=color)
+                    name=country_name,
+                    marker=dict(color=color),
+                    hovertemplate=f'<b>{country_name}</b><br>Year: %{{x}}<br>Value: %{{y:.2f}}<extra></extra>'
                 ))
             else:  # Area Chart
                 fig.add_trace(go.Scatter(
                     x=country_data['year'],
                     y=country_data['value'],
                     mode='lines',
-                    name=COMPARISON_COUNTRIES.get(country_code, country_code),
+                    name=country_name,
                     fill='tonexty' if country_code != df['country_code'].unique()[0] else 'tozeroy',
-                    line=dict(color=color)
+                    line=dict(color=color),
+                    hovertemplate=f'<b>{country_name}</b><br>Year: %{{x}}<br>Value: %{{y:.2f}}<extra></extra>'
                 ))
     else:
+        indicator_title = indicator_name.replace('_', ' ').title()
         if chart_type == "Line Chart":
             fig.add_trace(go.Scatter(
                 x=df['year'],
                 y=df['value'],
                 mode='lines+markers',
-                name=indicator_name.replace('_', ' ').title(),
+                name=indicator_title,
                 line=dict(color='#008751', width=3),
-                marker=dict(size=8)
+                marker=dict(size=8),
+                hovertemplate='<b>Year:</b> %{x}<br><b>Value:</b> %{y:.2f}<extra></extra>'
             ))
         elif chart_type == "Bar Chart":
             fig.add_trace(go.Bar(
                 x=df['year'],
                 y=df['value'],
-                name=indicator_name.replace('_', ' ').title(),
-                marker=dict(color='#008751')
+                name=indicator_title,
+                marker=dict(color='#008751'),
+                hovertemplate='<b>Year:</b> %{x}<br><b>Value:</b> %{y:.2f}<extra></extra>'
             ))
         else:  # Area Chart
             fig.add_trace(go.Scatter(
                 x=df['year'],
                 y=df['value'],
                 mode='lines',
-                name=indicator_name.replace('_', ' ').title(),
+                name=indicator_title,
                 fill='tozeroy',
-                line=dict(color='#008751')
+                line=dict(color='#008751'),
+                hovertemplate='<b>Year:</b> %{x}<br><b>Value:</b> %{y:.2f}<extra></extra>'
             ))
     
     fig.update_layout(

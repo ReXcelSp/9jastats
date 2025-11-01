@@ -21,6 +21,7 @@ Preferred communication style: Simple, everyday language.
 - **Rationale:** Plotly offers rich, interactive visualizations with built-in responsiveness and extensive chart types. The combination of graph_objects (low-level) and express (high-level) provides flexibility for both simple and complex visualizations.
 - **Pros:** Interactive charts, professional appearance, extensive chart types, subplot support
 - **Cons:** Larger bundle size compared to simpler charting libraries
+- **Hover Functionality:** Enhanced hover templates on all charts display exact data labels with year and precise values (formatted to 2 decimal places) for improved data exploration
 
 **UI Customization:** Custom CSS through Streamlit markdown
 - **Rationale:** Uses inline CSS styling to customize the appearance beyond Streamlit's default theming, including responsive design considerations.
@@ -48,7 +49,9 @@ Preferred communication style: Simple, everyday language.
 
 **Modular Design:**
 - `app.py`: Main application file containing UI layout and Streamlit configuration
-- `data_fetcher.py`: Data access layer for World Bank API
+- `data_fetcher.py`: Data access layer for World Bank API with SDG indicators
+- `custom_dashboard.py`: Custom dashboard builder for personalized metric selection
+- `predictions.py`: Predictive analytics module using linear regression
 - `main.py`: Entry point (appears to be template/placeholder)
 
 **Configuration Management:**
