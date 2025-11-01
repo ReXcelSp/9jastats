@@ -4,6 +4,30 @@ import pandas as pd
 import numpy as np
 from data_fetcher import WorldBankData, INDICATORS
 
+def get_theme_colors():
+    """Get color scheme based on current theme."""
+    if 'dark_mode' not in st.session_state:
+        st.session_state.dark_mode = False
+    
+    if st.session_state.dark_mode:
+        return {
+            'bg': '#1e1e1e',
+            'text': '#e0e0e0',
+            'primary': '#00b06f',
+            'grid': '#3d3d3d',
+            'plot_bg': 'rgba(45,45,45,0.5)',
+            'paper_bg': 'rgba(30,30,30,0)'
+        }
+    else:
+        return {
+            'bg': '#ffffff',
+            'text': '#000000',
+            'primary': '#008751',
+            'grid': '#f0f0f0',
+            'plot_bg': 'rgba(0,0,0,0)',
+            'paper_bg': 'rgba(0,0,0,0)'
+        }
+
 def show_predictive_analytics():
     """Display predictive analytics with trend projections."""
     st.markdown('<div class="section-title">🔮 Predictive Analytics & Trend Projections</div>', unsafe_allow_html=True)
@@ -201,6 +225,7 @@ def create_prediction_chart(historical_df, predictions_df, indicator_name, show_
     if historical_df.empty or predictions_df is None:
         return None
     
+    theme = get_theme_colors()
     fig = go.Figure()
     
     fig.add_trace(go.Scatter(
@@ -208,7 +233,7 @@ def create_prediction_chart(historical_df, predictions_df, indicator_name, show_
         y=historical_df['value'],
         mode='lines+markers',
         name='Historical Data',
-        line=dict(color='#008751', width=3),
+        line=dict(color=theme['primary'], width=3),
         marker=dict(size=8),
         hovertemplate='<b>Historical</b><br>Year: %{x}<br>Value: %{y:.2f}<extra></extra>'
     ))
@@ -245,20 +270,26 @@ def create_prediction_chart(historical_df, predictions_df, indicator_name, show_
         xaxis_title="Year",
         yaxis_title="Value",
         hovermode='x unified',
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(size=12),
+        plot_bgcolor=theme['plot_bg'],
+        paper_bgcolor=theme['paper_bg'],
+        font=dict(size=12, color=theme['text']),
         height=500,
         legend=dict(
             orientation="h",
             yanchor="bottom",
             y=-0.25,
             xanchor="center",
-            x=0.5
+            x=0.5,
+            font=dict(color=theme['text'])
+        ),
+        modebar=dict(
+            bgcolor='rgba(0,0,0,0)',
+            color=theme['text'],
+            activecolor=theme['primary']
         )
     )
     
-    fig.update_xaxes(showgrid=True, gridcolor='#f0f0f0')
-    fig.update_yaxes(showgrid=True, gridcolor='#f0f0f0')
+    fig.update_xaxes(showgrid=True, gridcolor=theme['grid'])
+    fig.update_yaxes(showgrid=True, gridcolor=theme['grid'])
     
     return fig

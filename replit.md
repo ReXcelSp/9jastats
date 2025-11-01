@@ -4,6 +4,32 @@
 
 9jaStats is a data visualization dashboard built with Streamlit that displays development indicators for Nigeria using World Bank API data. The application allows users to explore various economic, social, and development metrics for Nigeria and compare them with other countries. The dashboard features interactive charts powered by Plotly and provides cached data fetching for optimal performance.
 
+## Recent UX Enhancements (November 2025)
+
+**Dark/Light Mode**:
+- Theme toggle button in sidebar (sun ☀️ / moon 🌙 icon)
+- Smooth transitions between themes
+- All charts automatically adapt colors
+- Theme persists during session
+
+**Mobile-Responsive Design**:
+- Touch-optimized buttons (48px minimum on mobile, 44px on desktop)
+- Auto-stacking columns on screens <768px
+- Enhanced chart controls for mobile interaction
+- Larger touch targets for navigation elements
+- Responsive sidebar with proper sizing
+
+**Chart Enhancements**:
+- Built-in download functionality (PNG export via Plotly modebar)
+- Fully responsive across all screen sizes
+- Theme-aware coloring for all visualizations
+- Enhanced hover templates with exact values
+
+**Performance**:
+- Maintained 1-hour data caching for optimal speed
+- Smooth CSS transitions
+- Responsive chart rendering
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

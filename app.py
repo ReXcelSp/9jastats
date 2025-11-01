@@ -15,46 +15,152 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-st.markdown("""
+# Initialize theme in session state
+if 'dark_mode' not in st.session_state:
+    st.session_state.dark_mode = False
+
+def get_theme_colors():
+    """Get color scheme based on current theme."""
+    if st.session_state.dark_mode:
+        return {
+            'bg': '#1e1e1e',
+            'secondary_bg': '#2d2d2d',
+            'text': '#e0e0e0',
+            'subtext': '#b0b0b0',
+            'primary': '#00b06f',
+            'grid': '#3d3d3d',
+            'plot_bg': 'rgba(45,45,45,0.5)',
+            'paper_bg': 'rgba(30,30,30,0)'
+        }
+    else:
+        return {
+            'bg': '#ffffff',
+            'secondary_bg': '#f0f0f0',
+            'text': '#000000',
+            'subtext': '#666666',
+            'primary': '#008751',
+            'grid': '#f0f0f0',
+            'plot_bg': 'rgba(0,0,0,0)',
+            'paper_bg': 'rgba(0,0,0,0)'
+        }
+
+theme = get_theme_colors()
+
+st.markdown(f"""
     <style>
-        .main-header {
+        .stApp {{
+            background-color: {theme['bg']};
+            color: {theme['text']};
+        }}
+        .main-header {{
             font-size: 2.5rem;
             font-weight: 700;
-            color: #008751;
+            color: {theme['primary']};
             text-align: center;
             margin-bottom: 0.5rem;
-        }
-        .sub-header {
+        }}
+        .sub-header {{
             font-size: 1.2rem;
-            color: #666;
+            color: {theme['subtext']};
             text-align: center;
             margin-bottom: 2rem;
-        }
-        .metric-card {
-            background: linear-gradient(135deg, #008751 0%, #00b06f 100%);
+        }}
+        .metric-card {{
+            background: linear-gradient(135deg, {theme['primary']} 0%, #00b06f 100%);
             padding: 1.5rem;
             border-radius: 10px;
             color: white;
             text-align: center;
             margin-bottom: 1rem;
-        }
-        .section-title {
-            color: #008751;
+        }}
+        .section-title {{
+            color: {theme['primary']};
             font-size: 1.8rem;
             font-weight: 600;
             margin-top: 2rem;
             margin-bottom: 1rem;
-            border-bottom: 3px solid #008751;
+            border-bottom: 3px solid {theme['primary']};
             padding-bottom: 0.5rem;
-        }
-        @media (max-width: 768px) {
-            .main-header {
+        }}
+        /* Mobile-optimized touch targets */
+        .stButton>button {{
+            min-height: 44px;
+            min-width: 44px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }}
+        .stButton>button:active {{
+            transform: scale(0.98);
+        }}
+        [data-testid="stSidebar"] {{
+            background-color: {theme['secondary_bg']};
+        }}
+        /* Better mobile sidebar */
+        @media (max-width: 768px) {{
+            [data-testid="stSidebar"] {{
+                min-width: 280px;
+            }}
+            [data-testid="stSidebarNav"] {{
+                padding-top: 1rem;
+            }}
+        }}
+        /* Mobile responsive adjustments */
+        @media (max-width: 768px) {{
+            .main-header {{
                 font-size: 1.8rem;
-            }
-            .sub-header {
+                padding: 0 1rem;
+            }}
+            .sub-header {{
                 font-size: 1rem;
-            }
-        }
+                padding: 0 1rem;
+            }}
+            .section-title {{
+                font-size: 1.5rem;
+            }}
+            .stButton>button {{
+                min-height: 48px;
+                width: 100%;
+                font-size: 16px;
+            }}
+            .metric-card {{
+                padding: 1rem;
+            }}
+            /* Stack columns on mobile */
+            [data-testid="column"] {{
+                width: 100% !important;
+                flex: 1 1 100% !important;
+                min-width: 100% !important;
+            }}
+            /* Better chart spacing on mobile */
+            .js-plotly-plot {{
+                margin-bottom: 1rem;
+            }}
+            /* Larger touch targets for radio buttons */
+            [data-testid="stRadio"] label {{
+                min-height: 48px;
+                padding: 12px 16px;
+                display: flex;
+                align-items: center;
+            }}
+        }}
+        /* Smooth transitions for theme switching */
+        .stApp, .stButton>button, [data-testid="stSidebar"] {{
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }}
+        /* Enhanced Plotly chart controls for mobile */
+        .modebar {{
+            opacity: 1 !important;
+        }}
+        @media (max-width: 768px) {{
+            .modebar {{
+                top: 0px !important;
+                right: 0px !important;
+            }}
+            .modebar-btn {{
+                width: 32px !important;
+                height: 32px !important;
+            }}
+        }}
     </style>
 """, unsafe_allow_html=True)
 
@@ -85,6 +191,10 @@ def create_trend_chart(df, title, yaxis_title, color='#008751'):
     if df.empty:
         return None
     
+    theme = get_theme_colors()
+    if color == '#008751':
+        color = theme['primary']
+    
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=df['year'],
@@ -101,15 +211,20 @@ def create_trend_chart(df, title, yaxis_title, color='#008751'):
         xaxis_title="Year",
         yaxis_title=yaxis_title,
         hovermode='closest',
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(size=12),
+        plot_bgcolor=theme['plot_bg'],
+        paper_bgcolor=theme['paper_bg'],
+        font=dict(size=12, color=theme['text']),
         height=400,
-        margin=dict(l=50, r=50, t=50, b=50)
+        margin=dict(l=50, r=50, t=50, b=50),
+        modebar=dict(
+            bgcolor='rgba(0,0,0,0)',
+            color=theme['text'],
+            activecolor=theme['primary']
+        )
     )
     
-    fig.update_xaxes(showgrid=True, gridcolor='#f0f0f0')
-    fig.update_yaxes(showgrid=True, gridcolor='#f0f0f0')
+    fig.update_xaxes(showgrid=True, gridcolor=theme['grid'])
+    fig.update_yaxes(showgrid=True, gridcolor=theme['grid'])
     
     return fig
 
@@ -118,12 +233,14 @@ def create_comparison_chart(df, title, yaxis_title, latest_year=True):
     if df.empty:
         return None
     
+    theme = get_theme_colors()
+    
     if latest_year:
         df = df.sort_values('year').groupby('country_code').tail(1)
     
     df = df.sort_values('value', ascending=True)
     
-    colors = ['#008751' if code == 'NGA' else '#cccccc' for code in df['country_code']]
+    colors = [theme['primary'] if code == 'NGA' else '#999999' for code in df['country_code']]
     
     fig = go.Figure()
     fig.add_trace(go.Bar(
@@ -142,15 +259,20 @@ def create_comparison_chart(df, title, yaxis_title, latest_year=True):
         xaxis_title=yaxis_title,
         yaxis_title="",
         hovermode='closest',
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(size=12),
+        plot_bgcolor=theme['plot_bg'],
+        paper_bgcolor=theme['paper_bg'],
+        font=dict(size=12, color=theme['text']),
         height=400,
         margin=dict(l=150, r=50, t=50, b=50),
-        showlegend=False
+        showlegend=False,
+        modebar=dict(
+            bgcolor='rgba(0,0,0,0)',
+            color=theme['text'],
+            activecolor=theme['primary']
+        )
     )
     
-    fig.update_xaxes(showgrid=True, gridcolor='#f0f0f0')
+    fig.update_xaxes(showgrid=True, gridcolor=theme['grid'])
     
     return fig
 
@@ -159,9 +281,10 @@ def create_multi_line_chart(df, title, yaxis_title):
     if df.empty:
         return None
     
+    theme = get_theme_colors()
     fig = go.Figure()
     
-    colors = {'NGA': '#008751', 'ZAF': '#FF6B6B', 'EGY': '#4ECDC4', 
+    colors = {'NGA': theme['primary'], 'ZAF': '#FF6B6B', 'EGY': '#4ECDC4', 
               'KEN': '#FFD93D', 'GHA': '#A8E6CF', 'ETH': '#FFB6B9'}
     
     for country_code in df['country_code'].unique():
@@ -182,21 +305,27 @@ def create_multi_line_chart(df, title, yaxis_title):
         xaxis_title="Year",
         yaxis_title=yaxis_title,
         hovermode='x unified',
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(size=12),
+        plot_bgcolor=theme['plot_bg'],
+        paper_bgcolor=theme['paper_bg'],
+        font=dict(size=12, color=theme['text']),
         height=450,
         legend=dict(
             orientation="h",
             yanchor="bottom",
             y=-0.3,
             xanchor="center",
-            x=0.5
+            x=0.5,
+            font=dict(color=theme['text'])
+        ),
+        modebar=dict(
+            bgcolor='rgba(0,0,0,0)',
+            color=theme['text'],
+            activecolor=theme['primary']
         )
     )
     
-    fig.update_xaxes(showgrid=True, gridcolor='#f0f0f0')
-    fig.update_yaxes(showgrid=True, gridcolor='#f0f0f0')
+    fig.update_xaxes(showgrid=True, gridcolor=theme['grid'])
+    fig.update_yaxes(showgrid=True, gridcolor=theme['grid'])
     
     return fig
 
@@ -695,7 +824,20 @@ def show_sdg_progress():
 def main():
     """Main application function."""
     
-    st.sidebar.title("📊 Navigation")
+    # Dark mode toggle
+    col1, col2 = st.sidebar.columns([3, 1])
+    with col1:
+        st.sidebar.title("📊 Navigation")
+    with col2:
+        if st.session_state.dark_mode:
+            if st.button("☀️", key="theme_toggle", help="Switch to light mode"):
+                st.session_state.dark_mode = False
+                st.rerun()
+        else:
+            if st.button("🌙", key="theme_toggle", help="Switch to dark mode"):
+                st.session_state.dark_mode = True
+                st.rerun()
+    
     st.sidebar.markdown("---")
     
     page = st.sidebar.radio(

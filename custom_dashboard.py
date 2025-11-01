@@ -4,6 +4,30 @@ from plotly.subplots import make_subplots
 import pandas as pd
 from data_fetcher import WorldBankData, INDICATORS, SDG_INDICATORS, COMPARISON_COUNTRIES
 
+def get_theme_colors():
+    """Get color scheme based on current theme."""
+    if 'dark_mode' not in st.session_state:
+        st.session_state.dark_mode = False
+    
+    if st.session_state.dark_mode:
+        return {
+            'bg': '#1e1e1e',
+            'text': '#e0e0e0',
+            'primary': '#00b06f',
+            'grid': '#3d3d3d',
+            'plot_bg': 'rgba(45,45,45,0.5)',
+            'paper_bg': 'rgba(30,30,30,0)'
+        }
+    else:
+        return {
+            'bg': '#ffffff',
+            'text': '#000000',
+            'primary': '#008751',
+            'grid': '#f0f0f0',
+            'plot_bg': 'rgba(0,0,0,0)',
+            'paper_bg': 'rgba(0,0,0,0)'
+        }
+
 def show_custom_dashboard():
     """Display custom dashboard builder where users can select their own metrics."""
     st.markdown('<div class="section-title">🎨 Custom Dashboard Builder</div>', unsafe_allow_html=True)
@@ -138,7 +162,8 @@ def create_custom_chart(df, indicator_name, chart_type, multi_country=False):
     if df.empty:
         return None
     
-    colors = {'NGA': '#008751', 'ZAF': '#FF6B6B', 'EGY': '#4ECDC4', 
+    theme = get_theme_colors()
+    colors = {'NGA': theme['primary'], 'ZAF': '#FF6B6B', 'EGY': '#4ECDC4', 
               'KEN': '#FFD93D', 'GHA': '#A8E6CF', 'ETH': '#FFB6B9'}
     
     fig = go.Figure()
@@ -185,7 +210,7 @@ def create_custom_chart(df, indicator_name, chart_type, multi_country=False):
                 y=df['value'],
                 mode='lines+markers',
                 name=indicator_title,
-                line=dict(color='#008751', width=3),
+                line=dict(color=theme['primary'], width=3),
                 marker=dict(size=8),
                 hovertemplate='<b>Year:</b> %{x}<br><b>Value:</b> %{y:.2f}<extra></extra>'
             ))
@@ -194,7 +219,7 @@ def create_custom_chart(df, indicator_name, chart_type, multi_country=False):
                 x=df['year'],
                 y=df['value'],
                 name=indicator_title,
-                marker=dict(color='#008751'),
+                marker=dict(color=theme['primary']),
                 hovertemplate='<b>Year:</b> %{x}<br><b>Value:</b> %{y:.2f}<extra></extra>'
             ))
         else:  # Area Chart
@@ -204,7 +229,7 @@ def create_custom_chart(df, indicator_name, chart_type, multi_country=False):
                 mode='lines',
                 name=indicator_title,
                 fill='tozeroy',
-                line=dict(color='#008751'),
+                line=dict(color=theme['primary']),
                 hovertemplate='<b>Year:</b> %{x}<br><b>Value:</b> %{y:.2f}<extra></extra>'
             ))
     
@@ -213,20 +238,26 @@ def create_custom_chart(df, indicator_name, chart_type, multi_country=False):
         xaxis_title="Year",
         yaxis_title="Value",
         hovermode='x unified',
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(size=12),
+        plot_bgcolor=theme['plot_bg'],
+        paper_bgcolor=theme['paper_bg'],
+        font=dict(size=12, color=theme['text']),
         height=400,
         legend=dict(
             orientation="h",
             yanchor="bottom",
             y=-0.3,
             xanchor="center",
-            x=0.5
-        ) if multi_country else dict()
+            x=0.5,
+            font=dict(color=theme['text'])
+        ) if multi_country else dict(),
+        modebar=dict(
+            bgcolor='rgba(0,0,0,0)',
+            color=theme['text'],
+            activecolor=theme['primary']
+        )
     )
     
-    fig.update_xaxes(showgrid=True, gridcolor='#f0f0f0')
-    fig.update_yaxes(showgrid=True, gridcolor='#f0f0f0')
+    fig.update_xaxes(showgrid=True, gridcolor=theme['grid'])
+    fig.update_yaxes(showgrid=True, gridcolor=theme['grid'])
     
     return fig
