@@ -3,30 +3,7 @@ import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
 from data_fetcher import WorldBankData, INDICATORS
-
-def get_theme_colors():
-    """Get color scheme based on current theme."""
-    if 'dark_mode' not in st.session_state:
-        st.session_state.dark_mode = False
-    
-    if st.session_state.dark_mode:
-        return {
-            'bg': '#1e1e1e',
-            'text': '#e0e0e0',
-            'primary': '#00b06f',
-            'grid': '#3d3d3d',
-            'plot_bg': 'rgba(45,45,45,0.5)',
-            'paper_bg': 'rgba(30,30,30,0)'
-        }
-    else:
-        return {
-            'bg': '#ffffff',
-            'text': '#000000',
-            'primary': '#008751',
-            'grid': '#f0f0f0',
-            'plot_bg': 'rgba(0,0,0,0)',
-            'paper_bg': 'rgba(0,0,0,0)'
-        }
+from ui_helpers import get_theme_colors, render_chart
 
 def show_predictive_analytics():
     """Display predictive analytics with trend projections."""
@@ -89,7 +66,7 @@ def show_predictive_analytics():
                         show_confidence
                     )
                     if fig:
-                        st.plotly_chart(fig, width='stretch')
+                        render_chart(fig)
                         
                         st.markdown("#### Prediction Summary")
                         
@@ -233,19 +210,19 @@ def create_prediction_chart(historical_df, predictions_df, indicator_name, show_
         y=historical_df['value'],
         mode='lines+markers',
         name='Historical Data',
-        line=dict(color=theme['primary'], width=3),
-        marker=dict(size=8),
-        hovertemplate='<b>Historical</b><br>Year: %{x}<br>Value: %{y:.2f}<extra></extra>'
+        line=dict(color=theme['primary'], width=3, shape='spline'),
+        marker=dict(size=7),
+        hovertemplate='<b>Historical</b><br>Year: %{x}<br>Value: %{y:,.2f}<extra></extra>'
     ))
-    
+
     fig.add_trace(go.Scatter(
         x=predictions_df['year'],
         y=predictions_df['predicted'],
         mode='lines+markers',
         name='Forecast',
         line=dict(color='#FF6B6B', width=3, dash='dash'),
-        marker=dict(size=8, symbol='diamond'),
-        hovertemplate='<b>Forecast</b><br>Year: %{x}<br>Predicted: %{y:.2f}<extra></extra>'
+        marker=dict(size=8, symbol='diamond-open'),
+        hovertemplate='<b>Forecast</b><br>Year: %{x}<br>Predicted: %{y:,.2f}<extra></extra>'
     ))
     
     if show_confidence:
@@ -277,18 +254,17 @@ def create_prediction_chart(historical_df, predictions_df, indicator_name, show_
         legend=dict(
             orientation="h",
             yanchor="bottom",
-            y=-0.25,
+            y=-0.2,
             xanchor="center",
             x=0.5,
             font=dict(color=theme['text'])
         ),
-        modebar=dict(
-            bgcolor='rgba(0,0,0,0)',
-            color=theme['text'],
-            activecolor=theme['primary']
-        )
+        hoverlabel=dict(bgcolor=theme['secondary_bg'], font=dict(color=theme['text'])),
+        margin=dict(l=40, r=20, t=60, b=80),
+        transition=dict(duration=400),
+        uirevision=indicator_name,
     )
-    
+
     fig.update_xaxes(showgrid=True, gridcolor=theme['grid'])
     fig.update_yaxes(showgrid=True, gridcolor=theme['grid'])
     

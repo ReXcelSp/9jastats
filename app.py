@@ -1,12 +1,16 @@
 import streamlit as st
 import plotly.graph_objects as go
 import plotly.express as px
-from plotly.subplots import make_subplots
 import pandas as pd
-import numpy as np
 from data_fetcher import WorldBankData, INDICATORS, COMPARISON_COUNTRIES, SDG_INDICATORS
 from custom_dashboard import show_custom_dashboard
 from predictions import show_predictive_analytics
+from ui_helpers import (
+    ensure_theme_state,
+    get_theme_colors,
+    inject_custom_css,
+    render_chart,
+)
 
 st.set_page_config(
     page_title="9jaStats - Nigeria Development Dashboard",
@@ -15,169 +19,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Initialize theme in session state
-if 'dark_mode' not in st.session_state:
-    st.session_state.dark_mode = False
-
-def get_theme_colors():
-    """Get color scheme based on current theme."""
-    if st.session_state.dark_mode:
-        return {
-            'bg': '#1e1e1e',
-            'secondary_bg': '#2d2d2d',
-            'text': '#f5f5f5',
-            'subtext': '#d0d0d0',
-            'primary': '#00d68f',
-            'grid': '#3d3d3d',
-            'plot_bg': 'rgba(45,45,45,0.5)',
-            'paper_bg': 'rgba(30,30,30,0)'
-        }
-    else:
-        return {
-            'bg': '#ffffff',
-            'secondary_bg': '#f0f0f0',
-            'text': '#000000',
-            'subtext': '#666666',
-            'primary': '#008751',
-            'grid': '#f0f0f0',
-            'plot_bg': 'rgba(0,0,0,0)',
-            'paper_bg': 'rgba(0,0,0,0)'
-        }
-
-def inject_custom_css():
-    """Inject theme-aware custom CSS."""
-    theme = get_theme_colors()
-    st.markdown(f"""
-        <style>
-            .stApp {{
-                background-color: {theme['bg']};
-                color: {theme['text']};
-            }}
-            .main-header {{
-                font-size: 2.5rem;
-                font-weight: 700;
-                color: {theme['primary']};
-                text-align: center;
-                margin-bottom: 0.5rem;
-            }}
-            .sub-header {{
-                font-size: 1.2rem;
-                color: {theme['subtext']};
-                text-align: center;
-                margin-bottom: 2rem;
-            }}
-            .metric-card {{
-                background: linear-gradient(135deg, {theme['primary']} 0%, #00b06f 100%);
-                padding: 1.5rem;
-                border-radius: 10px;
-                color: white;
-                text-align: center;
-                margin-bottom: 1rem;
-            }}
-            .section-title {{
-                color: {theme['primary']};
-                font-size: 1.8rem;
-                font-weight: 600;
-                margin-top: 2rem;
-                margin-bottom: 1rem;
-                border-bottom: 3px solid {theme['primary']};
-                padding-bottom: 0.5rem;
-            }}
-            /* Mobile-optimized touch targets */
-            .stButton>button {{
-                min-height: 44px;
-                min-width: 44px;
-                border-radius: 8px;
-                transition: all 0.3s ease;
-            }}
-            .stButton>button:active {{
-                transform: scale(0.98);
-            }}
-            [data-testid="stSidebar"] {{
-                background-color: {theme['secondary_bg']};
-            }}
-            /* Better mobile sidebar */
-            @media (max-width: 768px) {{
-                [data-testid="stSidebar"] {{
-                    min-width: 280px;
-                }}
-                [data-testid="stSidebarNav"] {{
-                    padding-top: 1rem;
-                }}
-            }}
-            /* Mobile responsive adjustments */
-            @media (max-width: 768px) {{
-                .main-header {{
-                    font-size: 1.8rem;
-                    padding: 0 1rem;
-                }}
-                .sub-header {{
-                    font-size: 1rem;
-                    padding: 0 1rem;
-                }}
-                .section-title {{
-                    font-size: 1.5rem;
-                }}
-                .stButton>button {{
-                    min-height: 48px;
-                    width: 100%;
-                    font-size: 16px;
-                }}
-                .metric-card {{
-                    padding: 1rem;
-                }}
-                /* Stack columns on mobile */
-                [data-testid="column"] {{
-                    width: 100% !important;
-                    flex: 1 1 100% !important;
-                    min-width: 100% !important;
-                }}
-                /* Better chart spacing on mobile */
-                .js-plotly-plot {{
-                    margin-bottom: 1rem;
-                }}
-                /* Larger touch targets for radio buttons */
-                div[role="radiogroup"] > div {{
-                    min-height: 48px !important;
-                    padding: 6px 8px !important;
-                    display: flex !important;
-                    align-items: center !important;
-                }}
-                div[role="radiogroup"] label {{
-                    min-height: 48px !important;
-                    padding: 6px 0px !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    width: 100% !important;
-                }}
-                div[role="radiogroup"] p {{
-                    margin: 0 !important;
-                    line-height: 1.5 !important;
-                }}
-                div[role="radiogroup"] {{
-                    gap: 6px !important;
-                }}
-            }}
-            /* Smooth transitions for theme switching */
-            .stApp, .stButton>button, [data-testid="stSidebar"] {{
-                transition: background-color 0.3s ease, color 0.3s ease;
-            }}
-            /* Enhanced Plotly chart controls for mobile */
-            .modebar {{
-                opacity: 1 !important;
-            }}
-            @media (max-width: 768px) {{
-                .modebar {{
-                    top: 0px !important;
-                    right: 0px !important;
-                }}
-                .modebar-btn {{
-                    width: 32px !important;
-                    height: 32px !important;
-                }}
-            }}
-        </style>
-    """, unsafe_allow_html=True)
+ensure_theme_state()
 
 def format_number(num, prefix="", suffix="", decimals=2):
     """Format large numbers for display."""
@@ -201,6 +43,33 @@ def export_to_csv(df, filename):
         return None
     return df.to_csv(index=False).encode('utf-8')
 
+
+def hex_to_rgba(hex_color, alpha=0.2):
+    """Convert hex colors to rgba strings for Plotly fills."""
+    hex_color = hex_color.lstrip('#')
+    try:
+        r, g, b = tuple(int(hex_color[i:i + 2], 16) for i in (0, 2, 4))
+        return f'rgba({r},{g},{b},{alpha})'
+    except ValueError:
+        return f'rgba(0,0,0,{alpha})'
+
+
+def render_theme_switch():
+    """Responsive toggle that keeps dark/light state in sync."""
+    theme_choice = st.sidebar.radio(
+        "Theme",
+        options=["☀️ Light", "🌙 Dark"],
+        index=1 if st.session_state.dark_mode else 0,
+        horizontal=True,
+        label_visibility="collapsed",
+        key="theme_choice_radio",
+        help="Switch between light and dark palettes for the dashboard",
+    )
+    desired_dark = theme_choice.endswith("Dark")
+    if desired_dark != st.session_state.dark_mode:
+        st.session_state.dark_mode = desired_dark
+        st.rerun()
+
 def create_trend_chart(df, title, yaxis_title, color='#008751'):
     """Create a line chart for trend data."""
     if df.empty:
@@ -216,30 +85,30 @@ def create_trend_chart(df, title, yaxis_title, color='#008751'):
         y=df['value'],
         mode='lines+markers',
         name=title,
-        line=dict(color=color, width=3),
-        marker=dict(size=8, color=color),
-        hovertemplate='<b>Year:</b> %{x}<br><b>Value:</b> %{y:.2f}<extra></extra>'
+        line=dict(color=color, width=3, shape='spline'),
+        fill='tozeroy',
+        fillcolor=hex_to_rgba(color, 0.1),
+        marker=dict(size=7, color=color),
+        hovertemplate='<b>Year:</b> %{x}<br><b>Value:</b> %{y:,.2f}<extra></extra>',
     ))
-    
+
     fig.update_layout(
-        title=title,
+        title=dict(text=title, x=0.01, font=dict(color=theme['text'], size=18)),
         xaxis_title="Year",
         yaxis_title=yaxis_title,
-        hovermode='closest',
+        hovermode='x unified',
         plot_bgcolor=theme['plot_bg'],
         paper_bgcolor=theme['paper_bg'],
         font=dict(size=12, color=theme['text']),
         height=400,
-        margin=dict(l=50, r=50, t=50, b=50),
-        modebar=dict(
-            bgcolor='rgba(0,0,0,0)',
-            color=theme['text'],
-            activecolor=theme['primary']
-        )
+        margin=dict(l=40, r=30, t=60, b=40),
+        hoverlabel=dict(bgcolor=theme['secondary_bg'], font=dict(color=theme['text'])),
+        transition=dict(duration=400, easing='cubic-in-out'),
+        uirevision=title,
     )
-    
+
     fig.update_xaxes(showgrid=True, gridcolor=theme['grid'])
-    fig.update_yaxes(showgrid=True, gridcolor=theme['grid'])
+    fig.update_yaxes(showgrid=True, gridcolor=theme['grid'], zeroline=False)
     
     return fig
 
@@ -262,32 +131,31 @@ def create_comparison_chart(df, title, yaxis_title, latest_year=True):
         x=df['value'],
         y=df['country'],
         orientation='h',
-        marker=dict(color=colors),
+        marker=dict(color=colors, line=dict(color=theme['bg'], width=1)),
         text=df['value'].round(2),
-        textposition='auto',
-        hovertemplate='<b>%{y}</b><br>Value: %{x:.2f}<br>Year: %{customdata[0]}<extra></extra>',
+        texttemplate='%{text:,.2f}',
+        textposition='outside',
+        hovertemplate='<b>%{y}</b><br>Value: %{x:,.2f}<br>Year: %{customdata[0]}<extra></extra>',
         customdata=df[['year']].values
     ))
-    
+
     fig.update_layout(
-        title=title,
+        title=dict(text=title, x=0.01, font=dict(color=theme['text'], size=18)),
         xaxis_title=yaxis_title,
         yaxis_title="",
-        hovermode='closest',
+        hovermode='y',
         plot_bgcolor=theme['plot_bg'],
         paper_bgcolor=theme['paper_bg'],
         font=dict(size=12, color=theme['text']),
-        height=400,
-        margin=dict(l=150, r=50, t=50, b=50),
+        height=420,
+        margin=dict(l=120, r=40, t=60, b=40),
         showlegend=False,
-        modebar=dict(
-            bgcolor='rgba(0,0,0,0)',
-            color=theme['text'],
-            activecolor=theme['primary']
-        )
+        hoverlabel=dict(bgcolor=theme['secondary_bg'], font=dict(color=theme['text'])),
+        transition=dict(duration=400),
+        uirevision=title,
     )
-    
-    fig.update_xaxes(showgrid=True, gridcolor=theme['grid'])
+
+    fig.update_xaxes(showgrid=True, gridcolor=theme['grid'], zeroline=False)
     
     return fig
 
@@ -298,10 +166,10 @@ def create_multi_line_chart(df, title, yaxis_title):
     
     theme = get_theme_colors()
     fig = go.Figure()
-    
-    colors = {'NGA': theme['primary'], 'ZAF': '#FF6B6B', 'EGY': '#4ECDC4', 
+
+    colors = {'NGA': theme['primary'], 'ZAF': '#FF6B6B', 'EGY': '#4ECDC4',
               'KEN': '#FFD93D', 'GHA': '#A8E6CF', 'ETH': '#FFB6B9'}
-    
+
     for country_code in df['country_code'].unique():
         country_data = df[df['country_code'] == country_code]
         country_name = COMPARISON_COUNTRIES.get(country_code, country_code)
@@ -310,13 +178,13 @@ def create_multi_line_chart(df, title, yaxis_title):
             y=country_data['value'],
             mode='lines+markers',
             name=country_name,
-            line=dict(color=colors.get(country_code, '#888888'), width=2),
+            line=dict(color=colors.get(country_code, '#888888'), width=2.5, shape='spline'),
             marker=dict(size=6),
-            hovertemplate=f'<b>{country_name}</b><br>Year: %{{x}}<br>Value: %{{y:.2f}}<extra></extra>'
+            hovertemplate=f'<b>{country_name}</b><br>Year: %{{x}}<br>Value: %{{y:,.2f}}<extra></extra>'
         ))
-    
+
     fig.update_layout(
-        title=title,
+        title=dict(text=title, x=0.01, font=dict(color=theme['text'], size=18)),
         xaxis_title="Year",
         yaxis_title=yaxis_title,
         hovermode='x unified',
@@ -327,18 +195,18 @@ def create_multi_line_chart(df, title, yaxis_title):
         legend=dict(
             orientation="h",
             yanchor="bottom",
-            y=-0.3,
+            y=-0.25,
             xanchor="center",
             x=0.5,
-            font=dict(color=theme['text'])
+            font=dict(color=theme['text']),
+            bgcolor=hex_to_rgba(theme['secondary_bg'], 0.05)
         ),
-        modebar=dict(
-            bgcolor='rgba(0,0,0,0)',
-            color=theme['text'],
-            activecolor=theme['primary']
-        )
+        hoverlabel=dict(bgcolor=theme['secondary_bg'], font=dict(color=theme['text'])),
+        margin=dict(l=40, r=20, t=60, b=80),
+        transition=dict(duration=400),
+        uirevision=title,
     )
-    
+
     fig.update_xaxes(showgrid=True, gridcolor=theme['grid'])
     fig.update_yaxes(showgrid=True, gridcolor=theme['grid'])
     
@@ -397,7 +265,7 @@ def show_overview():
             if not gdp_df.empty:
                 fig = create_trend_chart(gdp_df, "Nigeria GDP Trend", "GDP (Current US$)", '#008751')
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("GDP data not available")
     
@@ -407,7 +275,7 @@ def show_overview():
             if not growth_df.empty:
                 fig = create_trend_chart(growth_df, "GDP Growth Rate (%)", "Annual % Growth", '#FF6B6B')
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("GDP growth data not available")
     
@@ -449,7 +317,7 @@ def show_economic_development():
         if not gdp_pc_df.empty:
             fig = create_trend_chart(gdp_pc_df, "GDP Per Capita", "Current US$", '#008751')
             if fig:
-                st.plotly_chart(fig, width='stretch')
+                render_chart(fig)
         else:
             st.info("GDP per capita data not available")
     
@@ -476,7 +344,7 @@ def show_economic_development():
                     color_discrete_sequence=['#008751', '#FFD93D', '#4ECDC4']
                 )
                 fig.update_layout(height=400)
-                st.plotly_chart(fig, width='stretch')
+                render_chart(fig)
             else:
                 st.info("Sectoral data not available")
     
@@ -487,7 +355,7 @@ def show_economic_development():
             if not inflation_df.empty:
                 fig = create_trend_chart(inflation_df, "Inflation Rate", "Annual %", '#FF6B6B')
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("Inflation data not available")
     
@@ -497,7 +365,7 @@ def show_economic_development():
         if not fdi_df.empty:
             fig = create_trend_chart(fdi_df, "FDI Net Inflows", "Current US$", '#4ECDC4')
             if fig:
-                st.plotly_chart(fig, width='stretch')
+                render_chart(fig)
         else:
             st.info("FDI data not available")
 
@@ -514,7 +382,7 @@ def show_social_development():
             if not life_exp_df.empty:
                 fig = create_trend_chart(life_exp_df, "Life Expectancy at Birth", "Years", '#008751')
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("Life expectancy data not available")
     
@@ -525,7 +393,7 @@ def show_social_development():
             if not infant_mort_df.empty:
                 fig = create_trend_chart(infant_mort_df, "Infant Mortality Rate", "Per 1,000 live births", '#FF6B6B')
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("Infant mortality data not available")
     
@@ -538,7 +406,7 @@ def show_social_development():
             if not primary_df.empty:
                 fig = create_trend_chart(primary_df, "Primary School Enrollment", "% Net", '#4ECDC4')
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("Primary enrollment data not available")
     
@@ -548,7 +416,7 @@ def show_social_development():
             if not secondary_df.empty:
                 fig = create_trend_chart(secondary_df, "Secondary School Enrollment", "% Net", '#FFD93D')
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("Secondary enrollment data not available")
     
@@ -592,7 +460,7 @@ def show_infrastructure():
             if not elec_df.empty:
                 fig = create_trend_chart(elec_df, "Access to Electricity", "% of Population", '#008751')
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("Electricity access data not available")
     
@@ -603,7 +471,7 @@ def show_infrastructure():
             if not internet_df.empty:
                 fig = create_trend_chart(internet_df, "Internet Users", "% of Population", '#4ECDC4')
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("Internet users data not available")
     
@@ -616,7 +484,7 @@ def show_infrastructure():
             if not mobile_df.empty:
                 fig = create_trend_chart(mobile_df, "Mobile Cellular Subscriptions", "Per 100 People", '#FFD93D')
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("Mobile subscriptions data not available")
     
@@ -626,7 +494,7 @@ def show_infrastructure():
             if not renewable_df.empty:
                 fig = create_trend_chart(renewable_df, "Renewable Energy Consumption", "% of Total", '#A8E6CF')
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("Renewable energy data not available")
 
@@ -644,7 +512,7 @@ def show_global_comparison():
         if not gdp_comp_df.empty:
             fig = create_comparison_chart(gdp_comp_df, "GDP Comparison - African Nations", "GDP (Current US$)")
             if fig:
-                st.plotly_chart(fig, width='stretch')
+                render_chart(fig)
         else:
             st.info("GDP comparison data not available")
     
@@ -657,7 +525,7 @@ def show_global_comparison():
             if not gdp_pc_comp_df.empty:
                 fig = create_comparison_chart(gdp_pc_comp_df, "GDP Per Capita", "Current US$")
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("GDP per capita comparison not available")
     
@@ -668,7 +536,7 @@ def show_global_comparison():
             if not life_comp_df.empty:
                 fig = create_comparison_chart(life_comp_df, "Life Expectancy", "Years")
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("Life expectancy comparison not available")
     
@@ -678,7 +546,7 @@ def show_global_comparison():
         if not growth_comp_df.empty:
             fig = create_multi_line_chart(growth_comp_df, "GDP Growth Rate - Regional Comparison", "Annual % Growth")
             if fig:
-                st.plotly_chart(fig, width='stretch')
+                render_chart(fig)
         else:
             st.info("GDP growth comparison not available")
     
@@ -691,7 +559,7 @@ def show_global_comparison():
             if not internet_comp_df.empty:
                 fig = create_comparison_chart(internet_comp_df, "Internet Users", "% of Population")
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("Internet comparison not available")
     
@@ -702,7 +570,7 @@ def show_global_comparison():
             if not elec_comp_df.empty:
                 fig = create_comparison_chart(elec_comp_df, "Electricity Access", "% of Population")
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("Electricity comparison not available")
 
@@ -743,7 +611,7 @@ def show_sdg_progress():
             if not poverty_df.empty:
                 fig = create_trend_chart(poverty_df, "Poverty Rate Trend", "% of Population at $2.15/day", '#FF6B6B')
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("Poverty data not available")
     
@@ -754,7 +622,7 @@ def show_sdg_progress():
             if not edu_df.empty:
                 fig = create_trend_chart(edu_df, "Primary Education Completion", "% of Relevant Age Group", '#008751')
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("Education data not available")
     
@@ -767,7 +635,7 @@ def show_sdg_progress():
             if not maternal_df.empty:
                 fig = create_trend_chart(maternal_df, "Maternal Mortality Ratio", "Per 100,000 Live Births", '#FF6B6B')
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("Maternal mortality data not available")
     
@@ -778,7 +646,7 @@ def show_sdg_progress():
             if not child_df.empty:
                 fig = create_trend_chart(child_df, "Under-5 Mortality Rate", "Per 1,000 Live Births", '#FFD93D')
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("Child mortality data not available")
     
@@ -793,7 +661,7 @@ def show_sdg_progress():
             if not gender_df.empty:
                 fig = create_trend_chart(gender_df, "Female Labor Force Participation", "% of Female Population", '#4ECDC4')
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("Gender equality data not available")
     
@@ -804,7 +672,7 @@ def show_sdg_progress():
             if not energy_df.empty:
                 fig = create_trend_chart(energy_df, "Electricity Access", "% of Population", '#008751')
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("Energy access data not available")
     
@@ -821,7 +689,7 @@ def show_sdg_progress():
             if not poverty_comp_df.empty:
                 fig = create_comparison_chart(poverty_comp_df, "Poverty Rate - African Nations", "% of Population")
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("Poverty comparison not available")
     
@@ -832,36 +700,25 @@ def show_sdg_progress():
             if not edu_comp_df.empty:
                 fig = create_comparison_chart(edu_comp_df, "Primary Completion Rate", "% of Age Group")
                 if fig:
-                    st.plotly_chart(fig, width='stretch')
+                    render_chart(fig)
             else:
                 st.info("Education comparison not available")
 
 def main():
     """Main application function."""
-    
+
     # Inject theme-aware CSS on every rerun
     inject_custom_css()
-    
-    # Dark mode toggle
-    col1, col2 = st.sidebar.columns([3, 1])
-    with col1:
-        st.sidebar.title("📊 Navigation")
-    with col2:
-        if st.session_state.dark_mode:
-            if st.button("☀️", key="theme_toggle", help="Switch to light mode"):
-                st.session_state.dark_mode = False
-                st.rerun()
-        else:
-            if st.button("🌙", key="theme_toggle", help="Switch to dark mode"):
-                st.session_state.dark_mode = True
-                st.rerun()
-    
+
+    st.sidebar.title("📊 Navigation")
+    render_theme_switch()
+    st.sidebar.caption("The entire dashboard re-themes instantly for distraction-free day or night use.")
     st.sidebar.markdown("---")
-    
+
     page = st.sidebar.radio(
         "Select Section:",
-        ["🏠 Overview", "💰 Economic Development", "👨‍👩‍👧‍👦 Social Development", 
-         "🏗️ Infrastructure & Tech", "🌍 Global Comparison", "🎯 SDG Progress", 
+        ["🏠 Overview", "💰 Economic Development", "👨‍👩‍👧‍👦 Social Development",
+         "🏗️ Infrastructure & Tech", "🌍 Global Comparison", "🎯 SDG Progress",
          "🎨 Custom Dashboard", "🔮 Predictive Analytics"],
         label_visibility="collapsed"
     )
