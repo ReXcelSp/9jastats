@@ -1,32 +1,8 @@
 import streamlit as st
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import pandas as pd
-from data_fetcher import WorldBankData, INDICATORS, SDG_INDICATORS, COMPARISON_COUNTRIES
-
-def get_theme_colors():
-    """Get color scheme based on current theme."""
-    if 'dark_mode' not in st.session_state:
-        st.session_state.dark_mode = False
-    
-    if st.session_state.dark_mode:
-        return {
-            'bg': '#1e1e1e',
-            'text': '#e0e0e0',
-            'primary': '#00b06f',
-            'grid': '#3d3d3d',
-            'plot_bg': 'rgba(45,45,45,0.5)',
-            'paper_bg': 'rgba(30,30,30,0)'
-        }
-    else:
-        return {
-            'bg': '#ffffff',
-            'text': '#000000',
-            'primary': '#008751',
-            'grid': '#f0f0f0',
-            'plot_bg': 'rgba(0,0,0,0)',
-            'paper_bg': 'rgba(0,0,0,0)'
-        }
+from data_fetcher import WorldBankData, INDICATORS, COMPARISON_COUNTRIES
+from ui_helpers import get_theme_colors, render_chart
 
 def show_custom_dashboard():
     """Display custom dashboard builder where users can select their own metrics."""
@@ -111,7 +87,7 @@ def show_custom_dashboard():
                     if not df.empty:
                         fig = create_custom_chart(df, indicator_name, chart_type, show_comparison)
                         if fig:
-                            st.plotly_chart(fig, width='stretch')
+                            render_chart(fig)
                             
                             csv = df.to_csv(index=False).encode('utf-8')
                             st.download_button(
@@ -180,17 +156,17 @@ def create_custom_chart(df, indicator_name, chart_type, multi_country=False):
                     y=country_data['value'],
                     mode='lines+markers',
                     name=country_name,
-                    line=dict(color=color, width=2),
+                    line=dict(color=color, width=2.5, shape='spline'),
                     marker=dict(size=6),
-                    hovertemplate=f'<b>{country_name}</b><br>Year: %{{x}}<br>Value: %{{y:.2f}}<extra></extra>'
+                    hovertemplate=f'<b>{country_name}</b><br>Year: %{{x}}<br>Value: %{{y:,.2f}}<extra></extra>'
                 ))
             elif chart_type == "Bar Chart":
                 fig.add_trace(go.Bar(
                     x=country_data['year'],
                     y=country_data['value'],
                     name=country_name,
-                    marker=dict(color=color),
-                    hovertemplate=f'<b>{country_name}</b><br>Year: %{{x}}<br>Value: %{{y:.2f}}<extra></extra>'
+                    marker=dict(color=color, line=dict(color=theme['bg'], width=1)),
+                    hovertemplate=f'<b>{country_name}</b><br>Year: %{{x}}<br>Value: %{{y:,.2f}}<extra></extra>'
                 ))
             else:  # Area Chart
                 fig.add_trace(go.Scatter(
@@ -199,8 +175,8 @@ def create_custom_chart(df, indicator_name, chart_type, multi_country=False):
                     mode='lines',
                     name=country_name,
                     fill='tonexty' if country_code != df['country_code'].unique()[0] else 'tozeroy',
-                    line=dict(color=color),
-                    hovertemplate=f'<b>{country_name}</b><br>Year: %{{x}}<br>Value: %{{y:.2f}}<extra></extra>'
+                    line=dict(color=color, shape='spline'),
+                    hovertemplate=f'<b>{country_name}</b><br>Year: %{{x}}<br>Value: %{{y:,.2f}}<extra></extra>'
                 ))
     else:
         indicator_title = indicator_name.replace('_', ' ').title()
@@ -210,17 +186,17 @@ def create_custom_chart(df, indicator_name, chart_type, multi_country=False):
                 y=df['value'],
                 mode='lines+markers',
                 name=indicator_title,
-                line=dict(color=theme['primary'], width=3),
-                marker=dict(size=8),
-                hovertemplate='<b>Year:</b> %{x}<br><b>Value:</b> %{y:.2f}<extra></extra>'
+                line=dict(color=theme['primary'], width=3, shape='spline'),
+                marker=dict(size=7),
+                hovertemplate='<b>Year:</b> %{x}<br><b>Value:</b> %{y:,.2f}<extra></extra>'
             ))
         elif chart_type == "Bar Chart":
             fig.add_trace(go.Bar(
                 x=df['year'],
                 y=df['value'],
                 name=indicator_title,
-                marker=dict(color=theme['primary']),
-                hovertemplate='<b>Year:</b> %{x}<br><b>Value:</b> %{y:.2f}<extra></extra>'
+                marker=dict(color=theme['primary'], line=dict(color=theme['bg'], width=1)),
+                hovertemplate='<b>Year:</b> %{x}<br><b>Value:</b> %{y:,.2f}<extra></extra>'
             ))
         else:  # Area Chart
             fig.add_trace(go.Scatter(
@@ -229,35 +205,35 @@ def create_custom_chart(df, indicator_name, chart_type, multi_country=False):
                 mode='lines',
                 name=indicator_title,
                 fill='tozeroy',
-                line=dict(color=theme['primary']),
-                hovertemplate='<b>Year:</b> %{x}<br><b>Value:</b> %{y:.2f}<extra></extra>'
+                line=dict(color=theme['primary'], shape='spline'),
+                hovertemplate='<b>Year:</b> %{x}<br><b>Value:</b> %{y:,.2f}<extra></extra>'
             ))
-    
+
+    legend_config = dict(
+        orientation="h",
+        yanchor="bottom",
+        y=-0.25,
+        xanchor="center",
+        x=0.5,
+        font=dict(color=theme['text'])
+    ) if multi_country else None
+
     fig.update_layout(
-        title=indicator_name.replace('_', ' ').title(),
+        title=dict(text=indicator_name.replace('_', ' ').title(), x=0.01, font=dict(color=theme['text'], size=18)),
         xaxis_title="Year",
         yaxis_title="Value",
         hovermode='x unified',
         plot_bgcolor=theme['plot_bg'],
         paper_bgcolor=theme['paper_bg'],
         font=dict(size=12, color=theme['text']),
-        height=400,
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=-0.3,
-            xanchor="center",
-            x=0.5,
-            font=dict(color=theme['text'])
-        ) if multi_country else dict(),
-        modebar=dict(
-            bgcolor='rgba(0,0,0,0)',
-            color=theme['text'],
-            activecolor=theme['primary']
-        )
+        height=420,
+        legend=legend_config,
+        hoverlabel=dict(bgcolor=theme['secondary_bg'], font=dict(color=theme['text'])),
+        margin=dict(l=40, r=20, t=60, b=60),
+        transition=dict(duration=400),
     )
-    
+
     fig.update_xaxes(showgrid=True, gridcolor=theme['grid'])
     fig.update_yaxes(showgrid=True, gridcolor=theme['grid'])
-    
+
     return fig
